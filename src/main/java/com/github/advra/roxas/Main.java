@@ -47,22 +47,12 @@ public class Main {
                 .login()
                 .block();
 
-        // register events
-
-
         client.getEventDispatcher().on(ReadyEvent.class)
                 .subscribe(event -> {
                     User self = event.getSelf();
                     System.out.println(String.format("Logged in as %s#%s", self.getUsername(), self.getDiscriminator()));
                 });
 
-//        client.getEventDispatcher().on(MessageCreateEvent.class)
-//                .map(MessageCreateEvent::getMessage)
-//                .filter(message -> message.getAuthor().map(user -> !user.isBot()).orElse(false))
-//                .filter(message -> message.getContent().equalsIgnoreCase("!ping"))
-//                .flatMap(Message::getChannel)
-//                .flatMap(channel -> channel.createMessage("Pong!"))
-//                .subscribe();
 
         client.getEventDispatcher().on(MessageCreateEvent.class)
                 // subscribe is like block, in that it will *request* for action
@@ -72,7 +62,7 @@ public class Main {
                     final String content = event.getMessage().getContent(); // 3.1 Message.getContent() is a String
                     for (final Map.Entry<String, Command> entry : commands.entrySet()) {
                         // We will be using ! as our "prefix" to any command in the system.
-                        if (content.startsWith('!' + entry.getKey())) {
+                        if (content.startsWith(cfg.botPrefix() + entry.getKey())) {
                             entry.getValue().execute(event);
                             break;
                         }
