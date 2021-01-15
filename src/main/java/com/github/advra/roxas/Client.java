@@ -5,7 +5,9 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.lifecycle.ReadyEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.User;
+import discord4j.gateway.GatewayClient;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,10 +16,25 @@ public class Client {
     private GatewayDiscordClient client;
     private static final Map<String, Command> commands = new HashMap<>();
 
+    static{
+        commands.put("ping", event -> event.getMessage()
+                .getChannel().block()
+                .createMessage(
+                        "Latency: " +
+                        event.getMessage().getClient().getGatewayClient(0).map(GatewayClient::getResponseTime).get().toMillis() +
+                        "ms")
+                .block());
+    }
+
+    static{
+        commands.put("menu", event -> event.getMessage()
+                .getChannel().block()
+                .createMessage("generate image to show menu!").block());
+    }
+
     public Client(ServerConfig cfg){
         client = DiscordClientBuilder
                 .create(cfg.token()).build().login().block();
-        RegisterCommands();
 
         client.getEventDispatcher().on(ReadyEvent.class)
                 .subscribe(event -> {
@@ -25,6 +42,7 @@ public class Client {
                     System.out.println(String.format("Logged in as %s#%s", self.getUsername(), self.getDiscriminator()));
                 });
 
+        // event handler to look up commands
         client.getEventDispatcher().on(MessageCreateEvent.class)
                 // subscribe is like block, in that it will *request* for action
                 // to be done, but instead of blocking the thread, waiting for it
@@ -51,9 +69,4 @@ public class Client {
         return commands;
     }
 
-    public void RegisterCommands(){
-        commands.put("ping", event -> event.getMessage()
-                .getChannel().block()
-                .createMessage("Pong!").block());
-    }
 }
