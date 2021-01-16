@@ -1,41 +1,32 @@
 package com.github.advra.roxas;
 
+import com.github.advra.roxas.commands.Command;
+import com.github.advra.roxas.commands.CommandExecutor;
+import com.github.advra.roxas.commands.PingCommand;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.lifecycle.ReadyEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.User;
-import discord4j.gateway.GatewayClient;
+import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class Client {
 
-    private GatewayDiscordClient client;
-    private static final Map<String, Command> commands = new HashMap<>();
-
-    static{
-        commands.put("ping", event -> event.getMessage()
-                .getChannel().block()
-                .createMessage(
-                        "Latency: " +
-                        event.getMessage().getClient().getGatewayClient(0).map(GatewayClient::getResponseTime).get().toMillis() +
-                        "ms")
-                .block());
-    }
-
-    static{
-        commands.put("menu", event -> event.getMessage()
-                .getChannel().block()
-                .createMessage("generate image to show menu!").block());
-    }
+    private static final List<Command> commands = new ArrayList<>();
+    GuildSettings settings;
 
     public Client(ServerConfig cfg){
-        client = DiscordClientBuilder
-                .create(cfg.token()).build().login().block();
+        GatewayDiscordClient client = DiscordClientBuilder.create(cfg.token()).build().login().block();
 
+        //Register commands
+        RegisterEventCommands();
+
+        // Register Listeners
         client.getEventDispatcher().on(ReadyEvent.class)
                 .subscribe(event -> {
                     User self = event.getSelf();
@@ -49,11 +40,24 @@ public class Client {
                 // to finish, it will just execute the results asynchronously.
                 .subscribe(event -> {
                     final String content = event.getMessage().getContent(); // 3.1 Message.getContent() is a String
-                    for (final Map.Entry<String, Command> entry : commands.entrySet()) {
-                        // We will be using ! as our "prefix" to any command in the system.
-                        if (content.startsWith(cfg.botPrefix() + entry.getKey())) {
-                            entry.getValue().execute(event);
-                            break;
+
+                    if(content.startsWith(cfg.botPrefix())){
+                        final String[] cmdAndArgs = content.trim().split("\\s+");
+                        if (cmdAndArgs.length > 1) {
+                            //command with args
+                            final String cmd = cmdAndArgs[0].replace(cfg.botPrefix(), "");
+                            final List<String> args = Arrays.asList(cmdAndArgs).subList(1, cmdAndArgs.length);
+
+                            //issue command
+                            System.out.println("event::issueCommand::" + cmd + ":" + args);
+                            CommandExecutor.issueCommand(cmd, args, event, settings);
+                        } else if (cmdAndArgs.length == 1) {
+                            //Only command, no args
+                            final String cmd = cmdAndArgs[0].replace(cfg.botPrefix(), "");
+
+                            //Issue command
+                            System.out.println("event::issueCommand::" + cmd);
+                            CommandExecutor.issueCommand(cmd, new ArrayList<>(), event, settings);
                         }
                     }
                 });
@@ -61,12 +65,8 @@ public class Client {
         client.onDisconnect().block();
     }
 
-    public GatewayDiscordClient getInstance(){
-        return client;
-    }
-
-    public Map<String, Command> Commands(){
-        return commands;
+    private void RegisterEventCommands(){
+        CommandExecutor.registerCommand(new PingCommand());
     }
 
 }
