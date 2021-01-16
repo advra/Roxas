@@ -3,28 +3,65 @@ package com.github.advra.roxas;
 import com.github.advra.roxas.commands.Command;
 import com.github.advra.roxas.commands.CommandExecutor;
 import com.github.advra.roxas.commands.PingCommand;
+import com.github.advra.roxas.listeners.MessageCreateListener;
+import com.github.advra.roxas.listeners.ReadyEventListener;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.lifecycle.ReadyEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.User;
+import discord4j.core.object.presence.Activity;
+import discord4j.core.object.presence.Presence;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+
+// ref: https://github.com/DreamExposure/DisCal-Discord-Bot/tree/1c0bbff377676d046c5242ce7f965ce58dd79ddd
 
 public class Client {
 
-    private static final List<Command> commands = new ArrayList<>();
+    private static GatewayDiscordClient client;
     GuildSettings settings;
 
+    /**
+     * Creates the bot client.
+     *
+     * @param token The Bot Token
+     * @return The client if successful, otherwise <code>null</code>.
+     */
+    public static GatewayDiscordClient create(String token){
+        DiscordClientBuilder.create(token)
+                .build().gateway()
+//                .setSharding(getStrategy())
+//                .setStoreService(getStores())
+                .setInitialStatus(shard -> Presence.idle(Activity.playing("Booting Up...")))
+                .withGateway(client -> {
+
+                    //Register listeners
+                    final Mono<Void> onReady = client.on(ReadyEvent.class)
+                            .flatMap(ReadyEventListener::handle)
+                            .then();
+
+//                    final Mono<Void> onTextChannelDelete = client
+//                            .on(TextChannelDeleteEvent.class, ChannelDeleteListener::handle)
+//                            .then();
+//
+                    final Mono<Void> onCommand = client
+                            .on(MessageCreateEvent.class, MessageCreateListener::handle)
+                            .then();
+
+                    return Mono.when(onReady, onCommand);
+                }).block();
+
+        try {
+            return client;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /*
     public Client(ServerConfig cfg){
         GatewayDiscordClient client = DiscordClientBuilder.create(cfg.token()).build().login().block();
-
-        //Register commands
-        RegisterEventCommands();
 
         // Register Listeners
         client.getEventDispatcher().on(ReadyEvent.class)
@@ -64,9 +101,26 @@ public class Client {
 
         client.onDisconnect().block();
     }
+    */
 
-    private void RegisterEventCommands(){
-        CommandExecutor.registerCommand(new PingCommand());
+    /**
+     * Creates the DisCal bot client.
+     *
+     * @param token The Bot Token.
+     * @return The client if successful, otherwise <code>null</code>.
+     */
+    public static GatewayDiscordClient createClient(String token) {
+        GatewayDiscordClient client = DiscordClientBuilder.create(token).build().login().block();
+        try {
+            return client;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static GatewayDiscordClient getInstance(){
+        return client;
     }
 
 }
