@@ -31,14 +31,6 @@ public class Main {
         CommandExecutor.registerCommand(new PingCommand());
 
         // Initiate and Login client instance
-
-//        client =  Client.createClient(cfg.token());
-//        if (client == null)
-//            throw new NullPointerException("Failed to log in! Client cannot be null!");
-//
-//        client.onDisconnect().block();
-
-        //Login
         client = Client.create(cfg.token());
         if (client == null)
             throw new NullPointerException("Failed to log in! Client cannot be null!");

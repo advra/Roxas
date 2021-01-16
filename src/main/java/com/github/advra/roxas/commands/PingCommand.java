@@ -39,18 +39,13 @@ public class PingCommand implements Command {
     @Override
     public Mono<Void> issueCommand(final String[] args, final MessageCreateEvent event, final GuildSettings settings) {
         StopWatch watch = new StopWatch();
-        watch.start();
-        event.getMessage()
-            .getChannel().block()
-                .createMessage(
-                    "Latency: " + event.getMessage().getClient().getGatewayClient(0)
-                    .map(GatewayClient::getResponseTime).get().toMillis() + "ms")
-                .block();
 
-//        return Mono.just(args).flatMap(ignore -> {
-//            System.out.println("issueCommand::ping::execute");
+        event.getMessage().getChannel().block()
+            .createMessage(
+                "Latency: " + event.getMessage().getClient().getGatewayClient(event.getShardInfo().getIndex())
+                .map(GatewayClient::getResponseTime).get().toMillis() + "ms")
+            .block();
+
             return Mono.empty();
-//        }).then();
     }
-
 }
