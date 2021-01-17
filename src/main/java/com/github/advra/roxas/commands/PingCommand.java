@@ -4,7 +4,6 @@ import com.github.advra.roxas.GuildSettings;
 import com.github.advra.roxas.utils.MessageUtils;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.gateway.GatewayClient;
-import org.apache.commons.lang3.time.StopWatch;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;

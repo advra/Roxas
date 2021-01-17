@@ -1,9 +1,11 @@
 package com.github.advra.roxas.commands;
 
 import com.github.advra.roxas.GuildSettings;
+import com.github.advra.roxas.utils.DatabaseUtils;
 import com.github.advra.roxas.utils.EmojiUtils;
 import com.github.advra.roxas.utils.MessageUtils;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.event.domain.message.ReactionAddEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
@@ -41,22 +43,24 @@ public class StartCommand implements Command{
 
     @Override
     public Mono<Void> issueCommand(final String[] args, final MessageCreateEvent event, final GuildSettings settings) {
-        GenderType gender = GenderType.Unselected;
 
-        // todo: check if user is in db
-        // if already then do nothing otherwise setup character
-        Message msg = MessageUtils.SendMessage(event, "Welcome " + event.getMember().get().getNicknameMention()
+//        var member = event.getMember().orElse(null);
+//        if (member == null) {
+//            return Mono.empty();
+//        }
+
+        Message msg =  MessageUtils.sendMessage(event, "Welcome " + event.getMember().get().getNicknameMention()
                 + "! It looks like you're new around here.\n No worries! "
-                + "Lets get you started. Are you a boy or a girl?");
+                + "Lets get you started. What do you identify as?");
 
-        msg.addReaction(EmojiUtils.EMOJI_MALE).block();
-        msg.addReaction(EmojiUtils.EMOJI_FEMALE).block();
+        Mono<Void> maleReaction = msg.addReaction(EmojiUtils.EMOJI_MALE);
+        Mono<Void> femaleReaction = msg.addReaction(EmojiUtils.EMOJI_FEMALE);
+//        Mono<Void> reactorEvent = event.getClient().on(ReactionAddEvent.class)
+//                .filter(e -> e.getMessageId().equals(event.getMessage().getId()))   // on same message
+//                .filter(e -> e.getUserId().equals(event.getMember().get().getId())) // by same person
+//                .next()
+//                .flatMap(e -> DatabaseUtils.setUserGender(e.getUser(), e.getEmoji()) /* do whatever */);
 
-        msg.getReactors(EmojiUtils.EMOJI_MALE).filter(user -> !user.equals(event.getMessage().getAuthor())).then().block();
-
-//        MessageUtils.SendMessage(event, "You selected Male, confirm?");
-//        MessageUtils.SendMessage(event, "You selected Female, confirm?");
-
-        return Mono.empty();
+        return Mono.when(maleReaction, femaleReaction);
     }
 }
