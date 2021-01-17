@@ -26,6 +26,11 @@ public class CommandExecutor {
         commands.add(_command);
     }
 
+    public static void initRegistry(){
+        CommandExecutor.registerCommand(new PingCommand());
+        CommandExecutor.registerCommand(new StartCommand());
+    }
+
     public static Mono<Void> issueCommand(final String cmd, final List<String> argsOr, final MessageCreateEvent event, final GuildSettings settings) {
         final String[] args;
         if (!argsOr.isEmpty()) {

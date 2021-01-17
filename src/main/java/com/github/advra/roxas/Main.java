@@ -1,6 +1,7 @@
 package com.github.advra.roxas;
 import com.github.advra.roxas.commands.CommandExecutor;
 import com.github.advra.roxas.commands.PingCommand;
+import com.github.advra.roxas.commands.StartCommand;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.EventDispatcher;
@@ -28,7 +29,7 @@ public class Main {
 //        DatabaseManager.getManager().createTables();
 
         //Register commands
-        CommandExecutor.registerCommand(new PingCommand());
+        CommandExecutor.initRegistry();
 
         // Initiate and Login client instance
         client = Client.create(cfg.token());

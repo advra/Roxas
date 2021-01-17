@@ -9,6 +9,7 @@ import java.util.Random;
  * For Project: DisCal-Discord-Bot
  */
 public class GeneralUtils {
+
     /**
      * Gets the contents of the message at a set offset.
      *

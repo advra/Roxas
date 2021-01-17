@@ -43,7 +43,7 @@ public class Client {
 //                    final Mono<Void> onTextChannelDelete = client
 //                            .on(TextChannelDeleteEvent.class, ChannelDeleteListener::handle)
 //                            .then();
-//
+
                     final Mono<Void> onCommand = client
                             .on(MessageCreateEvent.class, MessageCreateListener::handle)
                             .then();

@@ -1,8 +1,10 @@
 package com.github.advra.roxas.commands;
 
 import com.github.advra.roxas.GuildSettings;
+import com.github.advra.roxas.utils.MessageUtils;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.gateway.GatewayClient;
+import org.apache.commons.lang3.time.StopWatch;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -22,8 +24,7 @@ public class PingCommand implements Command {
     @Override
     public CommandInfo getCommandInfo() {
         return new CommandInfo("ping",
-                "Tests your connection latency to the bot",
-                "!ping (command) (sub-command)");
+                "Tests your connection latency to the bot", "!ping");
     }
 
     @Override
