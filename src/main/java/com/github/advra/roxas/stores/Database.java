@@ -5,6 +5,7 @@ import discord4j.core.event.domain.message.ReactionAddEvent;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.reaction.Reaction;
 import discord4j.core.object.reaction.ReactionEmoji;
+import reactor.core.publisher.Mono;
 
 public class Database {
     static{
@@ -25,14 +26,12 @@ public class Database {
 
     public static void setUserGender(String u, ReactionEmoji e){
         String gender = (e.equals(EmojiUtils.EMOJI_MALE)) ? "male" : "female";
-        Database.write(u, gender);
+        System.out.println("Called setUserGender");
+//        Database.write(u, gender);
     }
 
     public static void setUserGender(ReactionEmoji e){
         System.out.println(e.toString());
     }
 
-    public static void Test(){
-
-    }
 }
