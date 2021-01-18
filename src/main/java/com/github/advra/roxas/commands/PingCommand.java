@@ -4,6 +4,7 @@ import com.github.advra.roxas.GuildSettings;
 import com.github.advra.roxas.utils.MessageUtils;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.gateway.GatewayClient;
+import org.apache.commons.lang3.time.StopWatch;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -28,12 +29,13 @@ public class PingCommand implements Command {
 
     @Override
     public Mono<Void> issueCommand(final String[] args, final MessageCreateEvent event, final GuildSettings settings) {
-        event.getMessage().getChannel().block()
-            .createMessage(
-                "Latency: " + event.getMessage().getClient().getGatewayClient(event.getShardInfo().getIndex())
-                .map(GatewayClient::getResponseTime).get().toMillis() + "ms")
-            .block();
+        Mono<Void> LatencyMessage = event.getMessage().getChannel()
+            .flatMap(channel -> channel
+                .createMessage("Latency: " +
+                    event.getMessage().getClient().getGatewayClient(event.getShardInfo().getIndex())
+                .map(GatewayClient::getResponseTime).get().toMillis() + "ms"))
+            .then();
 
-            return Mono.empty();
+        return Mono.when(LatencyMessage);
     }
 }
