@@ -24,10 +24,9 @@ public class Database {
 
     void init(){ }
 
-    public static void setUserGender(String u, ReactionEmoji e){
+    public static void setUserGender(User u, ReactionEmoji e){
         String gender = (e.equals(EmojiUtils.EMOJI_MALE)) ? "male" : "female";
-        System.out.println("Called setUserGender");
-//        Database.write(u, gender);
+        Database.write(u.getUsername()+u.getDiscriminator(), gender);
     }
 
     public static void setUserGender(ReactionEmoji e){

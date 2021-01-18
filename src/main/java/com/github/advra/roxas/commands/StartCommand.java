@@ -46,24 +46,14 @@ public class StartCommand implements Command{
         Mono<Void> femaleReaction = msg.addReaction(EmojiUtils.EMOJI_FEMALE);
 
         Mono<Void> reactorEvent = event.getClient().on(ReactionAddEvent.class)
-                .filter(e -> {
-                    //same message
-                    System.out.println("Message Clicked by " + e.getUser().block(Duration.ofSeconds(5)));
-                    return e.getMessageId().equals(event.getMessage().getId());
-                })
-                .filter(e -> {
-                    // same user
-                    System.out.println("Clicked2");
-                    return e.getUserId().equals(event.getMember().get().getId());
-                })
+                .filter(e -> e.getUserId().equals(event.getMessage().getAuthor().get().getId()))
+                .log()
                 .next()
-                .doOnNext(data -> Database.setUserGender(data.getUser().toString(), data.getEmoji()))
+                .doOnNext(data -> Database.setUserGender(data.getUser().block(Duration.ofSeconds(5)), data.getEmoji()))
                 .then();
+
+//        Mono<Void> responseMesage = event.getClient().on(MessageCreateEvent)
 
         return Mono.when(maleReaction, femaleReaction, reactorEvent);
     }
-
-//    public Mono<Void> waitForResponse(Event e){
-//
-//    }
 }
