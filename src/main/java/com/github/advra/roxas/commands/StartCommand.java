@@ -47,8 +47,8 @@ public class StartCommand implements Command{
                 + "! It looks like you're new around here.\n No worries! "
                 + "Lets get you started with creating a character.",
                 event,
-                "https://i.imgur.com/8ke1AGB.png",
-                "https://i.imgur.com/8ke1AGB.png",
+                "https://i.imgur.com/eFczQTu.png",
+                "https://i.imgur.com/tnZTxt7.png",
                 "React to the Emoji below to select your gender"
                 );
 
