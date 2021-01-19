@@ -29,8 +29,4 @@ public class Database {
         Database.write(u.getUsername()+u.getDiscriminator(), gender);
     }
 
-    public static void setUserGender(ReactionEmoji e){
-        System.out.println(e.toString());
-    }
-
 }

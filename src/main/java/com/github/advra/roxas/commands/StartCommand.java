@@ -11,6 +11,7 @@ import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
 
+import javax.xml.crypto.Data;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -41,41 +42,34 @@ public class StartCommand implements Command{
 
     @Override
     public Mono<Void> issueCommand(final String[] args, final MessageCreateEvent event, final GuildSettings settings) {
-        Message msg =  MessageUtils.sendMessage(event, "Welcome " + event.getMember().get().getNicknameMention()
+        Message msg0 = MessageUtils.sendStoryboardMessage(
+                "Welcome " + event.getMember().get().getNicknameMention()
                 + "! It looks like you're new around here.\n No worries! "
-                + "Lets get you started. What do you identify as?");
+                + "Lets get you started with creating a character.",
+                event,
+                "https://i.imgur.com/8ke1AGB.png",
+                "https://i.imgur.com/8ke1AGB.png",
+                "React to the Emoji below to select your gender"
+                );
 
-        Mono<Void> maleReaction = msg.addReaction(EmojiUtils.EMOJI_MALE);
-        Mono<Void> femaleReaction = msg.addReaction(EmojiUtils.EMOJI_FEMALE);
+        Mono<Void> maleReaction = msg0.addReaction(EmojiUtils.EMOJI_MALE);
+        Mono<Void> femaleReaction = msg0.addReaction(EmojiUtils.EMOJI_FEMALE);
 
         Mono<Void> reactorEvent = event.getClient().on(ReactionAddEvent.class)
                 .filter(e -> e.getUserId().equals(event.getMessage().getAuthor().get().getId()))
                 .log()
                 .next()
                 .doOnNext(data -> Database.setUserGender(data.getUser().block(Duration.ofSeconds(5)), data.getEmoji()))
+                .doOnNext(data -> {
+                    String response = "Timed out (no response made in time). Create character again with !start";
+                    if(data.getEmoji().equals(EmojiUtils.EMOJI_MALE)){
+                        response = "Selected Male.";
+                    }else{
+                        response = "Selected Female.";
+                    }
+                    MessageUtils.sendUserActionMessage(event, event.getMember().get(), response);
+                })
                 .then();
-
-//        String IMAGE_URL = "https://cdn.betterttv.net/emote/55028cd2135896936880fdd7/3x";
-//        String ANY_URL = "https://www.youtube.com/watch?v=5zwY50-necw";
-//        MessageChannel channel = event.getMessage().getChannel()
-//                .then()
-//                .createEmbed(spec ->
-//                spec.setColor(Color.RED)
-//                        .setAuthor("setAuthor", ANY_URL, IMAGE_URL)
-//                        .setImage(IMAGE_URL)
-//                        .setTitle("setTitle/setUrl")
-//                        .setUrl(ANY_URL)
-//                        .setDescription("setDescription\n" +
-//                                "big D: is setImage\n" +
-//                                "small D: is setThumbnail\n" +
-//                                "<-- setColor")
-//                        .addField("addField", "inline = true", true)
-//                        .addField("addFIeld", "inline = true", true)
-//                        .addField("addFile", "inline = false", false)
-//                        .setThumbnail(IMAGE_URL)
-//                        .setFooter("setFooter --> setTimestamp", IMAGE_URL)
-//                        .setTimestamp(Instant.now())
-//        ).block();
 
         return Mono.when(maleReaction, femaleReaction, reactorEvent);
     }
