@@ -9,6 +9,10 @@ import java.time.Instant;
 
 public class MessageUtils {
 
+    public static Color colorBot = Color.DARK_GOLDENROD;
+    public static Color colorUser = Color.BLACK;
+    public static String thumbNailUnknown = "https://i.imgur.com/v7L004T.png";
+
     public static Message sendMessage(MessageCreateEvent event, String message){
         return event.getMessage().getChannel().block().createMessage(message).block();
     }
@@ -61,9 +65,10 @@ public class MessageUtils {
 
     }
 
-    public static Message sendStoryboardMessage(String message, MessageCreateEvent event, String imgBody, String imgFooter, String description){
+    public static Message sendStoryboardMessage(MessageCreateEvent event, String message, String imgBody, String imgFooter, String description){
         return event.getMessage().getChannel().block().createEmbed(spec ->
                 spec.setColor(Color.DARK_GOLDENROD)
+                        .setThumbnail(thumbNailUnknown)
                         .setDescription(message)
                         .setImage(imgBody)
                         .setFooter(description, imgFooter)
@@ -73,7 +78,7 @@ public class MessageUtils {
 
     public static Message sendUserActionMessage(MessageCreateEvent event, User user, String message){
         return event.getMessage().getChannel().block().createEmbed(spec ->
-                spec.setColor(Color.BLACK)
+                spec.setColor(colorUser)
                         .setAuthor(user.getUsername(), null, user.getAvatarUrl())
                         .setDescription(message)
         ).block();
@@ -84,7 +89,7 @@ public class MessageUtils {
         String ITEM_IMG = "https://i.imgur.com/R95qZ7k.png";
 
         return event.getMessage().getChannel().block().createEmbed(spec ->
-                spec.setColor(Color.DARK_GOLDENROD)
+                spec.setColor(colorBot)
                         .setAuthor("setAuthor", null, ITEM_IMG)
                         .setImage("https://i.imgur.com/8ke1AGB.png")
                         .setTitle("setTitle/setUrl")

@@ -37,19 +37,18 @@ public class StartCommand implements Command{
     @Override
     public CommandInfo getCommandInfo() {
         return new CommandInfo("start",
-                "To begin setup your character before starting your adventure", "!start");
+                "To begin setup your character.", "!start");
     }
 
     @Override
     public Mono<Void> issueCommand(final String[] args, final MessageCreateEvent event, final GuildSettings settings) {
         Message msg0 = MessageUtils.sendStoryboardMessage(
-                "Welcome " + event.getMember().get().getNicknameMention()
-                + "! It looks like you're new around here.\n No worries! "
-                + "Lets get you started with creating a character.",
                 event,
+                "Hey! I haven't seen you around- oh right, sorry " + event.getMember().get().getNicknameMention()
+                    + " my memory has been hazy lately. What do you identify yourself as?",
                 "https://i.imgur.com/eFczQTu.png",
                 "https://i.imgur.com/tnZTxt7.png",
-                "React to the Emoji below to select your gender"
+                "Enter: male or female. Or React to the Emoji below to select your gender"
                 );
 
         Mono<Void> maleReaction = msg0.addReaction(EmojiUtils.EMOJI_MALE);
