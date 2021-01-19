@@ -11,7 +11,7 @@ public class ReadyEventListener {
         User self = event.getSelf();
         System.out.println(String.format("Logged in as %s#%s", self.getUsername(), self.getDiscriminator()));
 
-        return event.getSelf().getClient().updatePresence(Presence.online(Activity.playing("KH | !help")))
+        return event.getSelf().getClient().updatePresence(Presence.online(Activity.playing("Kingdom Hearts | !help")))
                 .then();
     }
 }

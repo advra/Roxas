@@ -5,6 +5,7 @@ import com.github.advra.roxas.commands.CommandExecutor;
 import com.github.advra.roxas.commands.PingCommand;
 import com.github.advra.roxas.listeners.MessageCreateListener;
 import com.github.advra.roxas.listeners.ReadyEventListener;
+import com.github.advra.roxas.utils.GeneralUtils;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.lifecycle.ReadyEvent;
@@ -32,7 +33,7 @@ public class Client {
                 .build().gateway()
 //                .setSharding(getStrategy())
 //                .setStoreService(getStores())
-                .setInitialStatus(shard -> Presence.idle(Activity.playing("Booting Up...")))
+                .setInitialStatus(shard -> Presence.idle(Activity.playing("Booting up...")))
                 .withGateway(client -> {
 
                     //Register listeners

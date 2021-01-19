@@ -1,5 +1,8 @@
 package com.github.advra.roxas.utils;
 
+import discord4j.core.object.presence.Activity;
+import discord4j.discordjson.json.ActivityUpdateRequest;
+
 import java.util.List;
 import java.util.Random;
 
