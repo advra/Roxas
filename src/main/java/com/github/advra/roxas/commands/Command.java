@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface Command {
 
+    long durationTimeout = 15;
+
     /**
      * Gets the command this Object is responsible for.
      *

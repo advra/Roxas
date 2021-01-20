@@ -9,11 +9,7 @@ import java.util.ArrayList;
 
 public class StartCommand implements Command{
 
-    private enum GenderType{
-        Unselected,
-        Male,
-        Female
-    };
+    long durationTimeout = 30;
 
     @Override
     public String getCommand() {
@@ -43,9 +39,9 @@ public class StartCommand implements Command{
                 );
 
         Mono<Void> messageEvent = event.getClient().on(MessageCreateEvent.class)
-                .timeout(Duration.ofSeconds(5))
+                .timeout(Duration.ofSeconds(durationTimeout))
                 .doOnError(e-> MessageUtils.sendUserActionMessage(event, event.getMember().get(),
-                        "Timed out. No selection was male. Use !start to begin again."))
+                        "Timed out. No selection was made. Use !start to begin again."))
                 .filter(e -> {
                    return e.getMessage().getContent().equalsIgnoreCase("male") ||
                            e.getMessage().getContent().equalsIgnoreCase("female");
