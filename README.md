@@ -1,10 +1,11 @@
-# Roxas Bot
+# Java Discord Bot
 
-A kingdom hearts inspired discord bot.
+Java discord bot made with Discord4J.
 
-Dependencies: Discord4J
+Dependencies: Discord4J, MongoDB
 IDE: IntelliJ
 
+Current commands: !ping and !start
 
 Notes:
 ```
@@ -12,3 +13,4 @@ Notes:
 .map() = If called method returns publisher
 .doOnNext() = If no changes made calling runnable
 ```
+
