@@ -45,31 +45,50 @@ public class StartCommand implements Command{
         Message msg0 = MessageUtils.sendStoryboardMessage(
                 event,
                 "Hey! I haven't seen you around- oh right, sorry " + event.getMember().get().getNicknameMention()
-                    + " my memory has been hazy lately. What do you identify yourself as?",
+                    + " my memory's hazy lately.",
                 "https://i.imgur.com/eFczQTu.png",
                 "https://i.imgur.com/tnZTxt7.png",
-                "Enter: male or female. Or React to the Emoji below to select your gender"
+                "SELECT: male or female"
                 );
 
-        Mono<Void> maleReaction = msg0.addReaction(EmojiUtils.EMOJI_MALE);
-        Mono<Void> femaleReaction = msg0.addReaction(EmojiUtils.EMOJI_FEMALE);
+//        Mono<Void> maleReaction = msg0.addReaction(EmojiUtils.EMOJI_MALE);
+//        Mono<Void> femaleReaction = msg0.addReaction(EmojiUtils.EMOJI_FEMALE);
 
-        Mono<Void> reactorEvent = event.getClient().on(ReactionAddEvent.class)
-                .filter(e -> e.getUserId().equals(event.getMessage().getAuthor().get().getId()))
-                .log()
+//        Mono<Void> reactorEvent = event.getClient().on(ReactionAddEvent.class)
+//                .filter(e -> e.getUserId().equals(event.getMessage().getAuthor().get().getId()))
+//                .log()
+//                .next()
+//                .doOnNext(data -> Database.setUserGender(data.getUser().block(Duration.ofSeconds(5)), data.getEmoji()))
+//                .doOnNext(data -> {
+//                    String response = "Timed out (no response made in time). Create character again with !start";
+//                    if(data.getEmoji().equals(EmojiUtils.EMOJI_MALE)){
+//                        response = "Selected Male.";
+//                    }else{
+//                        response = "Selected Female.";
+//                    }
+//                    MessageUtils.sendUserActionMessage(event, event.getMember().get(), response);
+//                })
+//                .then();
+
+        Mono<Void> messageEvent = event.getClient().on(MessageCreateEvent.class)
+                .filter(e -> {
+                   return e.getMessage().getContent().equalsIgnoreCase("male") ||
+                           e.getMessage().getContent().equalsIgnoreCase("female");
+                })
                 .next()
-                .doOnNext(data -> Database.setUserGender(data.getUser().block(Duration.ofSeconds(5)), data.getEmoji()))
                 .doOnNext(data -> {
                     String response = "Timed out (no response made in time). Create character again with !start";
-                    if(data.getEmoji().equals(EmojiUtils.EMOJI_MALE)){
+                    if(data.getMessage().getContent().equalsIgnoreCase("male")){
                         response = "Selected Male.";
-                    }else{
+                    }else if(data.getMessage().getContent().equalsIgnoreCase("female")){
                         response = "Selected Female.";
                     }
                     MessageUtils.sendUserActionMessage(event, event.getMember().get(), response);
                 })
                 .then();
 
-        return Mono.when(maleReaction, femaleReaction, reactorEvent);
+//        return Mono.when(maleReaction, femaleReaction, reactorEvent, messageEvent);
+            return Mono.when(messageEvent);
+
     }
 }
