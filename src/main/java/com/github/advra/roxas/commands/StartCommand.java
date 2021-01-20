@@ -41,7 +41,7 @@ public class StartCommand implements Command{
         Mono<Void> messageEvent = event.getClient().on(MessageCreateEvent.class)
                 .timeout(Duration.ofSeconds(durationTimeout))
                 .doOnError(e-> MessageUtils.sendUserActionMessage(event, event.getMember().get(),
-                        "Timed out. No selection was made. Use !start to begin again."))
+                        "Timed out. Use !start to begin again."))
                 .filter(e -> {
                    return e.getMessage().getContent().equalsIgnoreCase("male") ||
                            e.getMessage().getContent().equalsIgnoreCase("female");
