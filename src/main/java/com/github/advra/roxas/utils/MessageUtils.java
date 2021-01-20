@@ -3,7 +3,10 @@ package com.github.advra.roxas.utils;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
+import discord4j.rest.http.client.ClientException;
 import discord4j.rest.util.Color;
+import reactor.core.Disposable;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -66,24 +69,27 @@ public class MessageUtils {
 
     }
 
-    public static Message sendStoryboardMessage(MessageCreateEvent event, String message, String imgBody, String imgFooter, String description){
-        return event.getMessage().getChannel().block().createEmbed(spec ->
-                spec.setColor(Color.DARK_GOLDENROD)
-                        .setThumbnail(thumbNailUnknown)
-                        .setDescription(message)
-                        .setImage(imgBody)
-                        .setFooter(description, imgFooter)
-        ).block();
-
+    public static Disposable sendStoryboardMessage(MessageCreateEvent event, String message, String imgBody, String imgFooter, String description){
+        return event.getMessage().getChannel()
+                .flatMap(c -> c.createEmbed(spec -> spec
+                    .setColor(Color.DARK_GOLDENROD)
+                    .setThumbnail(thumbNailUnknown)
+                    .setDescription(message)
+                    .setImage(imgBody)
+                    .setFooter(description, imgFooter)))
+                    .subscribe();
+//                .onErrorResume(ClientException.class, e -> Mono.empty());
     }
 
-    public static Message sendUserActionMessage(MessageCreateEvent event, User user, String message){
-        return event.getMessage().getChannel().block().createEmbed(spec ->
-                spec.setColor(colorUser)
-                        .setAuthor(user.getUsername(), null, user.getAvatarUrl())
-                        .setDescription(message)
-        ).block();
+    public static Disposable sendUserActionMessage(MessageCreateEvent event, User user, String message){
+        return event.getMessage().getChannel()
+                .flatMap(c -> c
+                    .createEmbed(spec -> spec
+                    .setColor(colorUser)
+                    .setAuthor(user.getUsername(), null, user.getAvatarUrl())
+                    .setDescription(message))).subscribe();
 
+//                .onErrorResume(ClientException.class, e -> Mono.empty());
     }
 
     public static Message sendItemPrompt(MessageCreateEvent event, String message){
