@@ -10,7 +10,8 @@ Current commands: !ping and !start
 Notes:
 ```
 .next() = Flux -> Mono 
-.map() = If called method returns publisher
-.doOnNext() = If no changes made calling runnable
+.map() = If returns publisher
+.flatmap() = if returns 
+.doOnNext() = does not return (no changes made calling runnable)
 ```
 

@@ -29,10 +29,12 @@ public class PingCommand implements Command {
     @Override
     public Mono<Void> issueCommand(final String[] args, final MessageCreateEvent event, final GuildSettings settings) {
         Mono<Void> LatencyMessage = event.getMessage().getChannel()
-            .flatMap(channel -> channel
-                .createMessage("Latency: " +
+            .doOnNext(e -> {
+                MessageUtils.sendUserActionMessage(event, event.getMember().get(),
+                    "Latency: " +
                     event.getMessage().getClient().getGatewayClient(event.getShardInfo().getIndex())
-                .map(GatewayClient::getResponseTime).get().toMillis() + "ms"))
+                    .map(GatewayClient::getResponseTime).get().toMillis() + "ms");
+            })
             .then();
 
         return Mono.when(LatencyMessage);
