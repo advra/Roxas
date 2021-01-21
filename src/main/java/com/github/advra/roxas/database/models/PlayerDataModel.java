@@ -3,22 +3,19 @@ package com.github.advra.roxas.database.models;
 import org.bson.Document;
 
 public class PlayerDataModel extends DataModel {
-    public enum TypeGender{
-        male,
-        female
-    }
-    private String userId;
-    private TypeGender gender;
 
-    public PlayerDataModel(String userId, TypeGender gender){
+    private Long userId;                // referenced as snowflake from discord api
+    private String gender;
+
+    public PlayerDataModel(Long userId) { this.userId = userId; }
+    public PlayerDataModel(Long userId, String gender) {
         this.userId = userId;
         this.gender = gender;
     }
 
-    public String getUserId() { return this.userId;}
-    public void setGender(TypeGender gender){this.gender = gender;}
-    public TypeGender getGender() {return this.gender;}
-    public String getGenderString() {return this.gender.toString();}
+    public Long getUserId() { return this.userId; }
+    public void setGender(String gender){ this.gender = gender.toLowerCase();}
+    public String getGender() {return this.gender; }
 
     public Document toDocument(){
         return new Document()

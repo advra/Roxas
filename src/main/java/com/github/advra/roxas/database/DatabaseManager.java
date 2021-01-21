@@ -13,7 +13,7 @@ public class DatabaseManager {
     static MongoClient mongoClient;
     static MongoDatabase database;
 
-    public static String USER_COLLECTION = "users";
+    public static String PLAYER_COLLECTION = "players";
 
     public static DatabaseManager getInstance(){
         if(instance == null){
@@ -36,30 +36,5 @@ public class DatabaseManager {
             database = mongoClient.getDatabase(databaseName);
         return database.getCollection(collection);
     }
-
-//    public void addNewUser(String username, String gender){
-//
-//        MongoCollection<Document> collection = database.getCollection(USER_COLLECTION);
-//        Document document = new Document();
-//        document.put("userid", username);
-//        document.put("gender", gender);
-//        collection.insertOne(document);
-//    }
-
-//    // establish our tables
-//    void init(){
-//        database.createCollection(USER_COLLECTION, null);
-//    }
-
-//    public static boolean getUser(String username){
-//        try{
-//            MongoCollection<Document> collection = database.getCollection(USER_COLLECTION);
-//            FindIterable fit = collection.find((Filters.eq("userid", username)));
-//            ArrayList<Document> docs = new ArrayList<Document>();
-//            fit.into(docs);
-//            return (docs.size() > 0)? true : false;
-//        }catch (Exception e){ }
-//        return false;
-//    }
 
 }
