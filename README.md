@@ -1,11 +1,16 @@
-# Java Discord Bot
+# Roxas Discord Bot
 
-Java discord bot made with Discord4J.
+A java discord bot made with Discord4J, Mongodb.
 
 Dependencies: Discord4J, MongoDB
 IDE: IntelliJ
 
 Current commands: !ping and !start
+
+Current Tasks:
+- complete !start
+- implement readwrite to database
+- make app springboot comaptible
 
 Notes:
 ```
