@@ -13,8 +13,6 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.ArrayList;
 
-import static com.github.advra.roxas.database.DatabaseManager.PLAYER_COLLECTION;
-
 public class StartCommand implements Command{
 
     long durationTimeout = 30;
@@ -61,23 +59,19 @@ public class StartCommand implements Command{
                 }else if(data.getMessage().getContent().equalsIgnoreCase("female")){
                     genderResponse = "female";
                 }
-                FindIterable<Document> doc = DatabaseManager.getInstance().getCollection(PLAYER_COLLECTION)
+                FindIterable<Document> doc = DatabaseManager.getInstance().getPlayers()
                         .find(Filters.eq("userid",event.getMember().get().getId().asLong()));
-                for (Document d: doc){
-                    System.out.println(d);
-                }
 
                 if(doc.first() == null){
-                    DatabaseManager.getInstance().getCollection(PLAYER_COLLECTION)
+                    DatabaseManager.getInstance().getPlayers()
                         .insertOne(new PlayerDataModel(event.getMember().get().getId().asLong(), genderResponse)
                             .toDocument());
                 }else{
                     System.out.println("Update instead of insert");
-                    DatabaseManager.getInstance().getCollection(PLAYER_COLLECTION)
+                    DatabaseManager.getInstance().getPlayers()
                         .updateOne(Filters.eq("userid", event.getMember().get().getId().asLong()),
                                     new Document("$set", new Document("gender",genderResponse)));
                 }
-
 
                 MessageUtils.sendUserActionMessage(event, event.getMember().get(), "Selected " +
                     genderResponse + ".");

@@ -37,4 +37,9 @@ public class DatabaseManager {
         return database.getCollection(collection);
     }
 
+    public MongoCollection<Document> getPlayers() {
+        if (database == null)
+            database = mongoClient.getDatabase(databaseName);
+        return database.getCollection(PLAYER_COLLECTION);
+    }
 }
