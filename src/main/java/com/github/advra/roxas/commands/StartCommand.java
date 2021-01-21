@@ -1,9 +1,12 @@
 package com.github.advra.roxas.commands;
 
 import com.github.advra.roxas.GuildSettings;
+import com.github.advra.roxas.database.DatabaseManager;
 import com.github.advra.roxas.utils.MessageUtils;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import reactor.core.publisher.Mono;
+
+import javax.xml.crypto.Data;
 import java.time.Duration;
 import java.util.ArrayList;
 
@@ -51,11 +54,16 @@ public class StartCommand implements Command{
                     String response = "";
                     if(data.getMessage().getContent().equalsIgnoreCase("male")){
                         response = "Selected Male.";
+//                        DatabaseManager.getUser("test");
                     }else if(data.getMessage().getContent().equalsIgnoreCase("female")){
                         response = "Selected Female.";
                     }
+//                    DatabaseManager.getInstance().addNewUser(event.getMember().get().getId().toString(), response);
                     System.out.println(response);
                     MessageUtils.sendUserActionMessage(event, event.getMember().get(), response);
+                })
+                .doOnNext(data -> {
+
                 })
                 .then();
             return Mono.when(messageEvent);

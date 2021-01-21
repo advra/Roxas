@@ -2,6 +2,7 @@ package com.github.advra.roxas;
 import com.github.advra.roxas.commands.CommandExecutor;
 import com.github.advra.roxas.commands.PingCommand;
 import com.github.advra.roxas.commands.StartCommand;
+import com.github.advra.roxas.database.DatabaseManager;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.EventDispatcher;
@@ -15,16 +16,17 @@ public class Main {
     public static void main(String[] args) {
 
         // load server properties
-        ServerConfig cfg = ConfigFactory.create(ServerConfig.class);
+        ServerConfig cfg;
         try{
-            System.out.println("Roxas Server booted " + cfg.hostname() + ":" + cfg.port() +
-                    " will run " + cfg.maxThreads() + " threads with key: " + cfg.token());
+            cfg = ConfigFactory.create(ServerConfig.class);
+            System.out.println("Roxas Server booted " + cfg.hostname() + ":" + cfg.port() + " will run "
+                    + cfg.maxThreads() + " threads with key: " + cfg.token());
             System.out.println("Version: " + version);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
+            System.out.println("DatabaseName: " + cfg.databaseName());
+            DatabaseManager.databaseName = cfg.databaseName();
 
-        //Connect to MySQL
+        //Connect to MongoDB
+//        DatabaseManager.
 //        DatabaseManager.getManager().connectToMySQL(botSettings);
 //        DatabaseManager.getManager().createTables();
 
@@ -35,6 +37,10 @@ public class Main {
         client = Client.create(cfg.token());
         if (client == null)
             throw new NullPointerException("Failed to log in! Client cannot be null!");
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
 }

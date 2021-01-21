@@ -7,8 +7,11 @@ public interface ServerConfig extends Config {
     String token();
     @DefaultValue(".")
     String botPrefix();
-    int port();
+    @DefaultValue("roxas")
+    String databaseName();
     String hostname();
+    int dbPort();
+    int port();
     @DefaultValue("42")
     int maxThreads();
 }
