@@ -6,7 +6,7 @@ Dependencies: Discord4J, MongoDB
 IDE Environment: IntelliJ
 ```
 
-###Current commands: 
+### Current commands: 
 1. !ping - check network latency between user client and bot gateway
 1. !start - create new character
 
