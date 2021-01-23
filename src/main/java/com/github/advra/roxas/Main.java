@@ -1,16 +1,12 @@
 package com.github.advra.roxas;
 import com.github.advra.roxas.commands.CommandExecutor;
-import com.github.advra.roxas.commands.PingCommand;
-import com.github.advra.roxas.commands.StartCommand;
 import com.github.advra.roxas.database.DatabaseManager;
-import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
-import discord4j.core.event.EventDispatcher;
 import org.aeonbits.owner.ConfigFactory;
 
 public class Main {
 
-    public static GatewayDiscordClient client;
+    public static GatewayDiscordClient CLIENT;
     public static String version = "2021.01.16";
 
     public static void main(String[] args) {
@@ -35,8 +31,8 @@ public class Main {
         CommandExecutor.initRegistry();
 
         // Initiate and Login client instance
-        client = Client.create(args[0]);
-        if (client == null)
+        CLIENT = Client.create(args[0]);
+        if (CLIENT == null)
             throw new NullPointerException("Failed to log in! Client cannot be null!");
 
         }catch(Exception e){

@@ -41,7 +41,7 @@ public class CommandExecutor {
         }
 
         return Mono.from(getCommand(cmd)
-                .flatMap(c -> c.issueCommand(args, event, settings)));
+            .flatMap(c -> c.issueCommand(args, event, settings)));
     }
 
     /**
@@ -64,9 +64,8 @@ public class CommandExecutor {
 
     public static Mono<Command> getCommand(final String cmdNameOrAlias) {
         return Flux.fromIterable(commands)
-                .filter(c ->
-                        c.getCommand().equalsIgnoreCase(cmdNameOrAlias)
-                                || c.getAliases().contains(cmdNameOrAlias.toLowerCase()))
-                .next();
+            .filter(c -> c.getCommand().equalsIgnoreCase(cmdNameOrAlias)
+                || c.getAliases().contains(cmdNameOrAlias.toLowerCase()))
+            .next();
     }
 }
