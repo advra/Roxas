@@ -7,6 +7,9 @@ import com.github.advra.roxas.utils.MessageUtils;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.channel.MessageChannel;
 import org.bson.Document;
 import reactor.core.publisher.Mono;
 
@@ -16,6 +19,8 @@ import java.util.ArrayList;
 public class StartCommand implements Command{
 
     long durationTimeout = 30;
+    Member user;
+    MessageChannel channel;
 
     @Override
     public String getCommand() {
@@ -34,19 +39,24 @@ public class StartCommand implements Command{
 
     @Override
     public Mono<Void> issueCommand(final String[] args, final MessageCreateEvent event, final GuildSettings settings) {
+        user = event.getMember().get();
+        channel = event.getMessage().getChannel().block();
+
+        // initial prompt
         MessageUtils.sendStoryboardMessage(
             event,
-            "Hey! I haven't seen you around here before- Oh right, sorry " + event.getMember().get()
-                    .getNicknameMention() + " my memory's hazy lately.",
+            "Hey! I haven't seen you around here before- Oh right, sorry " +  user.getNicknameMention() +
+                    " my memory's hazy lately.",
             "https://i.imgur.com/eFczQTu.png",
             "https://i.imgur.com/tnZTxt7.png",
             "ENTER: male or female"
         );
 
-        Mono<Void> messageEvent = event.getClient().on(MessageCreateEvent.class)
+        Mono<Void> userResponse = event.getClient().on(MessageCreateEvent.class)
             .timeout(Duration.ofSeconds(durationTimeout))
             .doOnError(e-> MessageUtils.sendUserActionMessage(event, event.getMember().get(),
                 "Timed out. Use !start to begin again."))
+            .filter(e -> !event.getMessage().getAuthor().get().equals(user))    // filter out other users
             .filter(e -> {
                 return e.getMessage().getContent().equalsIgnoreCase("male") ||
                     e.getMessage().getContent().equalsIgnoreCase("female");
@@ -78,6 +88,10 @@ public class StartCommand implements Command{
             })
             .then();
 
-        return Mono.when(messageEvent);
+        return Mono.when(userResponse);
     }
+
+//    Mono<MessageCreateEvent> selectGenderPrompt(Me){
+//        Mono<MessageCreateEvent> event =
+//    }
 }
