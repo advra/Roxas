@@ -89,7 +89,7 @@ public class StartCommand implements Command{
             .doOnError(e-> MessageUtils.sendUserActionMessage(event, event.getMember().get(),
                 "Timed out. Use !start to begin again."))
             .filter(rae -> !rae.getMember().get().isBot())         // reactor isnt a bot
-            .filter(rae -> rae.getMember().get().equals(user))     // reactor is original user
+            .filter(rae -> rae.getMember().get().equals(event.getMember().get()))     // reactor is original user
             .flatMap(rae -> {
                 System.out.println("Reacted emoji");
 //                if(rae.getEmoji().equals(EmojiUtils.PREVIOUS)) return previousPage(rae);
@@ -158,36 +158,15 @@ public class StartCommand implements Command{
         if(unionIndex>5) unionIndex = 0;
         System.out.println("index:" + unionIndex);
 
-//        EmbedCreateSpec newEmbed = new EmbedCreateSpec();
-//        newEmbed.setFooter(oldEmbed.getFooter().get().getText(), oldEmbed.getFooter().get().getIconUrl());
-
-        MessageEditSpec mes = new MessageEditSpec();
-        mes.setEmbed(s -> {
-            s.setDescription(oldEmbed.getDescription().get());
-            s.setImage(unionImageLinks[unionIndex]);
-            s.setColor(oldEmbed.getColor().get());
-            s.setFooter(oldEmbed.getFooter().get().getText(), oldEmbed.getFooter().get().getIconUrl());
-        });
-
         Mono<Void> removeReaction = targetMessage.removeReaction(rae.getEmoji(), rae.getUserId());
         Mono<Void> updateEmbed = targetMessage.edit(
-                messageEditSpec -> messageEditSpec.setEmbed(embedSpec -> embedSpec.setImage(unionImageLinks[unionIndex]))).then();
-//        rae.getChannel().block().getMessageById(rae.getMessageId()).block().edit()
+                messageEditSpec -> messageEditSpec.setEmbed(embedSpec -> {
+                    embedSpec.setDescription(oldEmbed.getDescription().get());
+                    embedSpec.setImage(unionImageLinks[unionIndex]);
+                    embedSpec.setColor(oldEmbed.getColor().get());
+                    embedSpec.setFooter(oldEmbed.getFooter().get().getText(), oldEmbed.getFooter().get().getIconUrl());
+                })).then();
 
-//        Embed oldEmbed = rae.getMessage().block().getEmbeds().get(0);
-//        Message newEmbed = rae.getChannel().block().createEmbed(spec-> {
-//            spec.setColor(oldEmbed.getColor().get());
-//            spec.setThumbnail(oldEmbed.getThumbnail().get().getUrl());
-//            spec.setDescription("And which of the following Unions do you identify yourself with? \n Two");
-//            spec.setImage(unionImageLinks[unionIndex]);
-//            spec.setFooter("REACT To Emojis to navigate PREVIOUS SELECT or NEXT", "https://i.imgur.com/tnZTxt7.png");
-//        }).block();
-//
-//        rae.getMessage().block().getEmbeds()
-//            .forEach(data -> System.out.print("Embed " + data));
-//
-
-        // only return once we remove the reaction and updated image
         return Mono.when(removeReaction, updateEmbed);
     }
 
