@@ -1,6 +1,7 @@
 package com.github.advra.roxas.utils;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.event.domain.message.ReactionAddEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.rest.http.client.ClientException;
@@ -49,6 +50,16 @@ public class MessageUtils {
                     .setColor(colorUser)
                     .setAuthor(user.getUsername(), null, user.getAvatarUrl())
                     .setDescription(message)));
+//                .onErrorResume(ClientException.class, e -> Mono.empty());
+    }
+
+    public static Mono<Message> sendUserActionMessage(ReactionAddEvent event, User user, String message){
+        return event.getChannel()
+                .flatMap(c -> c
+                        .createEmbed(spec -> spec
+                                .setColor(colorUser)
+                                .setAuthor(user.getUsername(), null, user.getAvatarUrl())
+                                .setDescription(message)));
 //                .onErrorResume(ClientException.class, e -> Mono.empty());
     }
 }
