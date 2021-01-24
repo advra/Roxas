@@ -12,6 +12,8 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
+import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.MessageEditSpec;
 import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
 
@@ -24,7 +26,7 @@ public class StartCommand implements Command{
     Member user;
     MessageChannel channel;
     String gender;
-    Message unionSelectPrompt;
+//    Message unionSelectPrompt;
 
     int state;
 
@@ -123,7 +125,7 @@ public class StartCommand implements Command{
 
         state++;
 
-        unionSelectPrompt = channel.createEmbed(spec -> {
+        Message unionSelectPrompt = channel.createEmbed(spec -> {
             spec.setColor(Color.DARK_GOLDENROD);
             spec.setThumbnail("https://i.imgur.com/v7L004T.png");
             spec.setDescription("And which of the following Unions do you identify yourself with? \n One");
@@ -150,13 +152,27 @@ public class StartCommand implements Command{
     }
 
     Mono <Void> pageNext(ReactionAddEvent rae){
-        Message targetMessage =  rae.getMessage().block();
+        Message targetMessage = rae.getChannel().block().getMessageById(rae.getMessageId()).block();
+        Embed oldEmbed = targetMessage.getEmbeds().get(0);
         unionIndex++;
         if(unionIndex>5) unionIndex = 0;
         System.out.println("index:" + unionIndex);
 
+//        EmbedCreateSpec newEmbed = new EmbedCreateSpec();
+//        newEmbed.setFooter(oldEmbed.getFooter().get().getText(), oldEmbed.getFooter().get().getIconUrl());
+
+        MessageEditSpec mes = new MessageEditSpec();
+        mes.setEmbed(s -> {
+            s.setDescription(oldEmbed.getDescription().get());
+            s.setImage(unionImageLinks[unionIndex]);
+            s.setColor(oldEmbed.getColor().get());
+            s.setFooter(oldEmbed.getFooter().get().getText(), oldEmbed.getFooter().get().getIconUrl());
+        });
+
         Mono<Void> removeReaction = targetMessage.removeReaction(rae.getEmoji(), rae.getUserId());
-//        Mono<Void> updateImage = targetMessage.getEmbeds().get(0).
+        Mono<Void> updateEmbed = targetMessage.edit(
+                messageEditSpec -> messageEditSpec.setEmbed(embedSpec -> embedSpec.setImage(unionImageLinks[unionIndex]))).then();
+//        rae.getChannel().block().getMessageById(rae.getMessageId()).block().edit()
 
 //        Embed oldEmbed = rae.getMessage().block().getEmbeds().get(0);
 //        Message newEmbed = rae.getChannel().block().createEmbed(spec-> {
@@ -171,8 +187,8 @@ public class StartCommand implements Command{
 //            .forEach(data -> System.out.print("Embed " + data));
 //
 
-        // only return once we remove the reaction
-        return Mono.when(removeReaction);
+        // only return once we remove the reaction and updated image
+        return Mono.when(removeReaction, updateEmbed);
     }
 
     Mono<Void> previousPage(ReactionAddEvent rae){
