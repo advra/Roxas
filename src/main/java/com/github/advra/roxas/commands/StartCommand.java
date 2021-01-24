@@ -70,6 +70,8 @@ public class StartCommand implements Command{
             .timeout(Duration.ofSeconds(30))
             .doOnError(e-> MessageUtils.sendUserActionMessage(event, event.getMember().get(),
                 "Timed out. Use !start to begin again."))
+            .filter(rae -> !rae.getMember().get().isBot())                // response is not bot
+            .filter(rae -> rae.getMember().get().equals(user))            // response is original user
             .flatMap(mce -> {
                 System.out.println("Reading: " + state);
                 if (state == 0) return userGenderReply(mce);
@@ -84,11 +86,13 @@ public class StartCommand implements Command{
             .timeout(Duration.ofSeconds(durationTimeout))
             .doOnError(e-> MessageUtils.sendUserActionMessage(event, event.getMember().get(),
                 "Timed out. Use !start to begin again."))
+            .filter(rae -> !rae.getMember().get().isBot())         // reactor isnt a bot
+            .filter(rae -> rae.getMember().get().equals(user))     // reactor is original user
             .flatMap(rae -> {
                 System.out.println("Reacted emoji");
-                if(rae.getEmoji().equals(EmojiUtils.PREVIOUS)) return previousPage(rae);
-                else if(rae.getEmoji().equals(EmojiUtils.SELECT)) return selectPage(rae);
-                else if(rae.getEmoji().equals(EmojiUtils.NEXT)) return pageNext(rae);
+//                if(rae.getEmoji().equals(EmojiUtils.PREVIOUS)) return previousPage(rae);
+//                else if(rae.getEmoji().equals(EmojiUtils.SELECT)) return selectPage(rae);
+                if(rae.getEmoji().equals(EmojiUtils.NEXT)) return pageNext(rae);
                 else return Mono.empty();
             })
             .then();
@@ -149,22 +153,26 @@ public class StartCommand implements Command{
         Message targetMessage =  rae.getMessage().block();
         unionIndex++;
         if(unionIndex>5) unionIndex = 0;
-        Embed oldEmbed = rae.getMessage().block().getEmbeds().get(0);
-        Message newEmbed = rae.getChannel().block().createEmbed(spec-> {
-            spec.setColor(oldEmbed.getColor().get());
-            spec.setThumbnail(oldEmbed.getThumbnail().get().getUrl());
-            spec.setDescription("And which of the following Unions do you identify yourself with? \n Two");
-            spec.setImage(unionImageLinks[unionIndex]);
-            spec.setFooter("REACT To Emojis to navigate PREVIOUS SELECT or NEXT", "https://i.imgur.com/tnZTxt7.png");
-        }).block();
+        System.out.println("index:" + unionIndex);
 
-        Embed targettEmbed = targetMessage.getEmbeds().get(0);
-        if(targettEmbed == null){
-            return Mono.empty();
-        }
+        Mono<Void> removeReaction = targetMessage.removeReaction(rae.getEmoji(), rae.getUserId());
+//        Mono<Void> updateImage = targetMessage.getEmbeds().get(0).
 
-//        return  channel.createEmbed(rae.getClient(), newEmbed);
-        return Mono.just(newEmbed).then();
+//        Embed oldEmbed = rae.getMessage().block().getEmbeds().get(0);
+//        Message newEmbed = rae.getChannel().block().createEmbed(spec-> {
+//            spec.setColor(oldEmbed.getColor().get());
+//            spec.setThumbnail(oldEmbed.getThumbnail().get().getUrl());
+//            spec.setDescription("And which of the following Unions do you identify yourself with? \n Two");
+//            spec.setImage(unionImageLinks[unionIndex]);
+//            spec.setFooter("REACT To Emojis to navigate PREVIOUS SELECT or NEXT", "https://i.imgur.com/tnZTxt7.png");
+//        }).block();
+//
+//        rae.getMessage().block().getEmbeds()
+//            .forEach(data -> System.out.print("Embed " + data));
+//
+
+        // only return once we remove the reaction
+        return Mono.when(removeReaction);
     }
 
     Mono<Void> previousPage(ReactionAddEvent rae){
