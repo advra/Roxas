@@ -27,60 +27,79 @@ public class StartCommand implements Command{
     boolean displayingError;
     Mono<Message> timeoutMessage;
 
-    final String unionImageLinks[] = {
-            "https://i.imgur.com/vN74ybN.png",
-            "https://i.imgur.com/QY3G7YO.png",
-            "https://i.imgur.com/xKhTKiT.png",
-            "https://i.imgur.com/q406YaG.png",
-            "https://i.imgur.com/JorlW7M.png"
+    final String unionImageLinks[] =
+    {
+        "https://i.imgur.com/vN74ybN.png",
+        "https://i.imgur.com/QY3G7YO.png",
+        "https://i.imgur.com/xKhTKiT.png",
+        "https://i.imgur.com/q406YaG.png",
+        "https://i.imgur.com/JorlW7M.png"
     };
 
     int unionIndex = 0;
 
     @Override
-    public String getCommand() {
+    public String getCommand()
+    {
         return "start";
     }
 
     @Override
-    public ArrayList<String> getAliases() {
+    public ArrayList<String> getAliases()
+    {
         return new ArrayList<>();
     }
 
     @Override
-    public CommandInfo getCommandInfo() {
+    public CommandInfo getCommandInfo()
+    {
         return new CommandInfo("start", "To begin setup your character.", "!start");
     }
 
     @Override
-    public Mono<Void> issueCommand(final String[] args, final MessageCreateEvent event, final GuildSettings settings) {
+    public Mono<Void> issueCommand(final String[] args, final MessageCreateEvent event, final GuildSettings settings)
+    {
         user = event.getMember().get();
         channel = event.getMessage().getChannel().block();
         state = 0;
         timeoutMessage =  MessageUtils.sendUserActionMessage(event, event.getMember().get(), "Timed out. No response received in time. Use !start to begin again.");
 
-        Mono<Message> initialMessage = MessageUtils.sendDisposableEmbedMessage(
-                event,
-                "Hey you two... I haven't seen either of you around here before?",
-                "https://i.imgur.com/eFczQTu.png",
-                "https://i.imgur.com/tnZTxt7.png",
-                "SELECT: male or female"
+        Mono<Message> initialMessage = MessageUtils.sendDisposableEmbedMessage
+        (
+            event,
+            "Hey you two... I haven't seen either of you around here before?",
+            "https://i.imgur.com/eFczQTu.png",
+            "https://i.imgur.com/tnZTxt7.png",
+            "SELECT: male or female"
         );
 
         Mono<Void> userResponseSubscriber = event.getClient().on(MessageCreateEvent.class)
             .log()
             .timeout(Duration.ofSeconds(3))
-            .onErrorResume(e-> {
-                if(state==1) timeoutMessage.subscribe();
+            .onErrorResume(e->
+            {
+                if(state == 0)
+                {
+                    timeoutMessage.subscribe();
+                }
+                System.out.println("Current State: " + state);
                 System.out.println(System.err);
                 return Mono.empty();
             })
-            .filter(rae -> !rae.getMember().get().isBot())                // response is not bot
-            .filter(rae -> rae.getMember().get().equals(user))            // response is original user
-            .flatMap(mce -> {
+            .filter(rae -> !rae.getMember().get().isBot())
+            .filter(rae -> rae.getMember().get().equals(user))
+            .flatMap(mce ->
+            {
                 System.out.println("Reading: " + state);
-                if (state == 0) return userGenderReply(mce);
-                else if (state == 1) return botUnionPrompt(mce);
+                if (state == 0)
+                {
+                    return userGenderReply(mce);
+                }
+                else if (state == 1)
+                {
+                    return botUnionPrompt(mce);
+                }
+
                 return Mono.empty();
             })
             .then();
@@ -88,35 +107,61 @@ public class StartCommand implements Command{
         // Emoji React Events
         Mono<Void> userReactSubscriber = event.getClient().on(ReactionAddEvent.class)
             .timeout(Duration.ofSeconds(10))
-                .onErrorResume(e-> {
+            .onErrorResume(e->
+            {
+                if(state == 1)
+                {
                     timeoutMessage.subscribe();
-                    System.out.println(System.err);
-                    return Mono.empty();
+                }
+
+                System.out.println("Current State: " + state);
+                System.out.println(System.err);
+
+                return Mono.empty();
             })
-            .filter(rae -> !rae.getMember().get().isBot())         // reactor isnt a bot
-            .filter(rae -> rae.getMember().get().equals(event.getMember().get()))     // reactor is original user
+            // reaction is not from a bot
+            .filter(rae -> !rae.getMember().get().isBot())
+            // reaction is same as the user that sent command
+            .filter(rae -> rae.getMember().get().equals(event.getMember().get()))
             .log()
-            .flatMap(rae -> {
+            .flatMap(rae ->
+            {
                 System.out.println("Reacted emoji");
                 System.out.println("State: " + state);
-                if (state == 1 && rae.getEmoji().equals(EmojiUtils.CHECK)) return selectUnion(rae);
-                else if(state == 1 && rae.getEmoji().equals(EmojiUtils.NEXT)) return getUnionPage(rae, ++unionIndex);
-                else if(state == 1 && rae.getEmoji().equals(EmojiUtils.PREVIOUS)) return getUnionPage(rae, --unionIndex);
-                else return Mono.empty();
+                if(state == 1)
+                {
+                    if (rae.getEmoji().equals(EmojiUtils.CHECK))
+                    {
+                        return selectUnion(rae);
+                    }
+                    else if(rae.getEmoji().equals(EmojiUtils.NEXT))
+                    {
+                        return getUnionPage(rae, ++unionIndex);
+                    }
+                    else if(rae.getEmoji().equals(EmojiUtils.PREVIOUS))
+                    {
+                        return getUnionPage(rae, --unionIndex);
+                    }
+                }
+
+                return Mono.empty();
             })
             .then();
 
         return Mono.when(initialMessage, userResponseSubscriber, userReactSubscriber);
     }
 
-    Mono<Void> userGenderReply(MessageCreateEvent mce){
+    Mono<Void> userGenderReply(MessageCreateEvent mce)
+    {
         if(mce.getMember().equals(user)) return  Mono.empty();
 
         String response = mce.getMessage().getContent();
         gender = response;
         System.out.println("Response is: " + response);
         if(!(response.equalsIgnoreCase("male") || response.equalsIgnoreCase("female") || response.equalsIgnoreCase("nonbinary")))
+        {
             return Mono.empty();
+        }
 
         // store into database
 //        FindIterable<Document> doc = DatabaseManager.getInstance().getPlayers()
@@ -132,14 +177,16 @@ public class StartCommand implements Command{
 //            }
         state++;
 
-        Message unionSelectPrompt = channel.createEmbed(spec -> {
+        Message unionSelectPrompt = channel.createEmbed(spec ->
+        {
             spec.setColor(Color.DARK_GOLDENROD);
             spec.setThumbnail("https://i.imgur.com/v7L004T.png");
             spec.setDescription("Ohh, right! Please excuse me " + user.getNicknameMention() +
                     ", my memory is hazy. And which Union insignia do you reside with?");
             spec.setImage(unionImageLinks[0]);
             spec.setFooter( "REACT To Emojis to navigate PREVIOUS SELECT or NEXT", "https://i.imgur.com/tnZTxt7.png");
-        }).block();
+        })
+        .block();
 
         Mono<Void> previousReaction = unionSelectPrompt.addReaction(EmojiUtils.PREVIOUS);
         Mono<Void> selectReaction = unionSelectPrompt.addReaction(EmojiUtils.CHECK);
@@ -148,12 +195,14 @@ public class StartCommand implements Command{
         return Mono.when(previousReaction,selectReaction,nextReaction);
     }
 
-    Mono <Message> botUnionPrompt(MessageCreateEvent mce){
+    Mono <Message> botUnionPrompt(MessageCreateEvent mce)
+    {
         if(mce.getMember().get().isBot()) return Mono.empty();
         return Mono.empty();
     }
 
-    Mono <Void> getUnionPage(ReactionAddEvent rae, int index){
+    Mono <Void> getUnionPage(ReactionAddEvent rae, int index)
+    {
         Message targetMessage = rae.getChannel().block().getMessageById(rae.getMessageId()).block();
         Embed oldEmbed = targetMessage.getEmbeds().get(0);
         if(index>=unionImageLinks.length-1) index = 0;
@@ -162,20 +211,24 @@ public class StartCommand implements Command{
         System.out.println("index:" + unionIndex);
 
         Mono<Void> removeReaction = targetMessage.removeReaction(rae.getEmoji(), rae.getUserId());
-        Mono<Void> updateEmbed = targetMessage.edit(
-                messageEditSpec -> messageEditSpec.setEmbed(embedSpec -> {
-                    embedSpec.setThumbnail("https://i.imgur.com/v7L004T.png");
-                    embedSpec.setDescription(oldEmbed.getDescription().get());
-                    embedSpec.setImage(unionImageLinks[unionIndex]);
-                    embedSpec.setColor(oldEmbed.getColor().get());
-                    embedSpec.setFooter(oldEmbed.getFooter().get().getText(), oldEmbed.getFooter().get().getIconUrl());
-                }))
+        Mono<Void> updateEmbed = targetMessage.edit
+        (
+            messageEditSpec -> messageEditSpec.setEmbed(embedSpec ->
+            {
+                embedSpec.setThumbnail("https://i.imgur.com/v7L004T.png");
+                embedSpec.setDescription(oldEmbed.getDescription().get());
+                embedSpec.setImage(unionImageLinks[unionIndex]);
+                embedSpec.setColor(oldEmbed.getColor().get());
+                embedSpec.setFooter(oldEmbed.getFooter().get().getText(), oldEmbed.getFooter().get().getIconUrl());
+            }
+        ))
         .then();
 
         return Mono.when(removeReaction, updateEmbed);
     }
 
-    Mono<Void> selectUnion(ReactionAddEvent rae){
+    Mono<Void> selectUnion(ReactionAddEvent rae)
+    {
         Message targetMessage = rae.getChannel().block().getMessageById(rae.getMessageId()).block();
         state=2;
         System.out.println("Reacted emoji");
