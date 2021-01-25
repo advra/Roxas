@@ -24,6 +24,8 @@ public class StartCommand implements Command{
     int union;
 
     int state;
+    boolean displayingError;
+    Mono<Message> timeoutMessage;
 
     final String unionImageLinks[] = {
             "https://i.imgur.com/vN74ybN.png",
@@ -32,12 +34,6 @@ public class StartCommand implements Command{
             "https://i.imgur.com/q406YaG.png",
             "https://i.imgur.com/JorlW7M.png"
     };
-
-    class Union{
-        String name;
-        String description;
-        String image;
-    }
 
     int unionIndex = 0;
 
@@ -61,19 +57,24 @@ public class StartCommand implements Command{
         user = event.getMember().get();
         channel = event.getMessage().getChannel().block();
         state = 0;
+        timeoutMessage =  MessageUtils.sendUserActionMessage(event, event.getMember().get(), "Timed out. No response received in time. Use !start to begin again.");
+
         Mono<Message> initialMessage = MessageUtils.sendDisposableEmbedMessage(
                 event,
-                "Hey you two! I haven't either of you around here before-\n OH, right!! Please excuse me "
-                        +  user.getNicknameMention() + ", my memory is hazy. I haven't been feeling myself lately.",
+                "Hey you two... I haven't seen either of you around here before?",
                 "https://i.imgur.com/eFczQTu.png",
                 "https://i.imgur.com/tnZTxt7.png",
-                "ENTER: male or female"
+                "SELECT: male or female"
         );
 
         Mono<Void> userResponseSubscriber = event.getClient().on(MessageCreateEvent.class)
-            .timeout(Duration.ofSeconds(durationTimeout))
-            .doOnError(e-> MessageUtils.sendUserActionMessage(event, event.getMember().get(),
-                "Timed out. Use !start to begin again."))
+            .log()
+            .timeout(Duration.ofSeconds(3))
+            .onErrorResume(e-> {
+                if(state==1) timeoutMessage.subscribe();
+                System.out.println(System.err);
+                return Mono.empty();
+            })
             .filter(rae -> !rae.getMember().get().isBot())                // response is not bot
             .filter(rae -> rae.getMember().get().equals(user))            // response is original user
             .flatMap(mce -> {
@@ -86,9 +87,12 @@ public class StartCommand implements Command{
 
         // Emoji React Events
         Mono<Void> userReactSubscriber = event.getClient().on(ReactionAddEvent.class)
-            .timeout(Duration.ofMinutes(3))
-            .doOnError(e-> MessageUtils.sendUserActionMessage(event, event.getMember().get(),
-                "Timed out. Use !start to begin again."))
+            .timeout(Duration.ofSeconds(10))
+                .onErrorResume(e-> {
+                    timeoutMessage.subscribe();
+                    System.out.println(System.err);
+                    return Mono.empty();
+            })
             .filter(rae -> !rae.getMember().get().isBot())         // reactor isnt a bot
             .filter(rae -> rae.getMember().get().equals(event.getMember().get()))     // reactor is original user
             .log()
@@ -114,7 +118,7 @@ public class StartCommand implements Command{
         if(!(response.equalsIgnoreCase("male") || response.equalsIgnoreCase("female") || response.equalsIgnoreCase("nonbinary")))
             return Mono.empty();
 
-        // store into database here
+        // store into database
 //        FindIterable<Document> doc = DatabaseManager.getInstance().getPlayers()
 //            .find(Filters.eq("userid",event.getMember().get().getId().asLong()));
 //
@@ -131,7 +135,8 @@ public class StartCommand implements Command{
         Message unionSelectPrompt = channel.createEmbed(spec -> {
             spec.setColor(Color.DARK_GOLDENROD);
             spec.setThumbnail("https://i.imgur.com/v7L004T.png");
-            spec.setDescription("And which of the following Unions do you identify yourself with? \n One");
+            spec.setDescription("Ohh, right! Please excuse me " + user.getNicknameMention() +
+                    ", my memory is hazy. And which Union insignia do you reside with?");
             spec.setImage(unionImageLinks[0]);
             spec.setFooter( "REACT To Emojis to navigate PREVIOUS SELECT or NEXT", "https://i.imgur.com/tnZTxt7.png");
         }).block();
@@ -165,9 +170,7 @@ public class StartCommand implements Command{
                     embedSpec.setColor(oldEmbed.getColor().get());
                     embedSpec.setFooter(oldEmbed.getFooter().get().getText(), oldEmbed.getFooter().get().getIconUrl());
                 }))
-        .doOnNext(ignore->{
-//            state++;
-        }).then();
+        .then();
 
         return Mono.when(removeReaction, updateEmbed);
     }
